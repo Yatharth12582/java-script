@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f3f4f6; color: #1f2937; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .item-form { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; margin-bottom: 20px; }
+        input, select { padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; }
+        button { background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #4338ca; }
+        .cart-list { border-top: 1px solid #e5e7eb; padding-top: 15px; margin-bottom: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        .remove-btn { background: #ef4444; padding: 4px 8px; font-size: 12px; }
+        .remove-btn:hover { background: #dc2626; }
+        .summary-box { background: #f9fafb; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .total-row { font-size: 18px; font-weight: bold; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 8px; color: #111827; }
+        .badge { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Shopping Cart</h2>
+        
+        <!-- Input Form for adding items -->
+        <div class="item-form">
+            <input type="text" id="itemName" placeholder="Item Name">
+            <input type="number" id="itemPrice" placeholder="Price ($)" min="0.01" step="0.01">
+            <input type="number" id="itemQty" placeholder="Qty" min="1" value="1">
+            <button onclick="addItemToCart()">Add</button>
+        </div>
+
+        <!-- Cart Display -->
+        <div class="cart-list" id="cartList">
+            <!-- Dynamic items go here -->
+        </div>
+
+        <!-- Discount Code Selection -->
+        <div class="summary-row" style="margin-bottom: 15px;">
+            <label for="promoCode" style="font-weight: bold; align-self: center;">Promo Code:</label>
+            <select id="promoCode" onchange="updateCartTotals()">
+                <option value="NONE">No Discount</option>
+                <option value="SAVE10">SAVE10 (10% Off Total)</option>
+                <option value="FREESHIP">FREESHIP (Subtracts $5.00 Flat)</option>
+                <option value="BOGO">BOGO (Buy 1 Get 1 Free on duplicate items)</option>
+            </select>
+        </div>
+
+        <!-- Checkout Summary -->
+        <div class="summary-box">
+            <div class="summary-row">
+                <span>Items Count:</span>
+                <span id="totalItems">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotalPrice">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Discount Applied:</span>
+                <span id="discountAmount">-$0.00</span>
+            </div>
+            <div class="summary-row total-row">
+                <span>Grand Total:</span>
+                <span id="grandTotal">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array holding the core application state (Object instances)
+        let shoppingCart = [
+            { id: 1, name: "Wireless Mouse", price: 25.00, quantity: 2 },
+            { id: 2, name: "Mechanical Keyboard", price: 80.00, quantity: 1 }
+        ];
+
+        function renderCart() {
+            const cartList = document.getElementById('cartList');
+            cartList.innerHTML = "";
+
+            if (shoppingCart.length === 0) {
+                cartList.innerHTML = "<p style='color: #6b7280; text-align: center;'>Your cart is empty.</p>";
+                return;
+            }
+
+            // ARRAY METHOD: ForEach loop to build UI components out of objects
+            shoppingCart.forEach(item => {
+                const itemRow = document.createElement('div');
+                itemRow.className = "cart-item";
+                itemRow.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong> 
+                        <span class="badge">$${item.price.toFixed(2)} x ${item.quantity}</span>
+                    </div>
+                    <div>
+                        <span style="margin-right: 15px; font-weight: bold;">$${(item.price * item.quantity).toFixed(2)}</span>
+                        <button class="remove-btn" onclick="removeItemFromCart(${item.id})">Remove</button>
+                    </div>
+                `;
+                cartList.appendChild(itemRow);
+            });
+        }
+
+        function addItemToCart() {
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            const qtyInput = document.getElementById('itemQty');
+
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+            const quantity = parseInt(qtyInput.value);
+
+            if (!name || isNaN(price) || price <= 0 || isNaN(quantity) || quantity <= 0) {
+                alert("Please fill out all product fields with valid positive details.");
+                return;
+            }
+
+            // ARRAY METHOD: Find to check if the item object already exists in state
+            const existingItem = shoppingCart.find(item => item.name.toLowerCase() === name.toLowerCase());
+
+            if (existingItem) {
+                // Object Mutation: Update property by reference
+                existingItem.quantity += quantity;
+            } else {
+                // Object Structure Creation
+                const newItem = {
+                    id: Date.now(), // Unique ID generation
+                    name: name,
+                    price: price,
+                    quantity: quantity
+                };
+                shoppingCart.push(newItem);
+            }
+
+            // Clear entry inputs
+            nameInput.value = "";
+            priceInput.value = "";
+            qtyInput.value = "1";
+
+            updateCartTotals();
+        }
+
+        function removeItemFromCart(id) {
+            // ARRAY METHOD: Filter out targeted product item by id
+            shoppingCart = shoppingCart.filter(item => item.id !== id);
+            updateCartTotals();
+        }
+
+        function updateCartTotals() {
+            renderCart();
+
+            // ARRAY METHOD: Reduce to get cumulative count of total product units
+            const totalUnits = shoppingCart.reduce((acc, item) => acc + item.quantity, 0);
+            document.getElementById('totalItems').innerText = totalUnits;
+
+            // ARRAY METHOD: Reduce to tally base monetary subtotal from objects
+            const subtotal = shoppingCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            document.getElementById('subtotalPrice').innerText = `$${subtotal.toFixed(2)}`;
+
+            // DISCOUNT LOGIC
+            const promo = document.getElementById('promoCode').value;
+            let discount = 0;
+
+            if (promo === "SAVE10") {
+                discount = subtotal * 0.10; // 10% off
+            } else if (promo === "FREESHIP") {
+                discount = subtotal > 0 ? 5.00 : 0; // Flat $5 off
+            } else if (promo === "BOGO") {
+                // ARRAY METHOD: Map items to determine if any quantities qualify for a free pairing unit
+                // Looks for instances where quantity >= 2 to deduct the base unit price for every second element
+                discount = shoppingCart
+                    .map(item => Math.floor(item.quantity / 2) * item.price)
+                    .reduce((acc, currentVal) => acc + currentVal, 0);
+            }
+
+            const grandTotal = Math.max(0, subtotal - discount);
+
+            document.getElementById('discountAmount').innerText = `-$${discount.toFixed(2)}`;
+            document.getElementById('grandTotal').innerText = `$${grandTotal.toFixed(2)}`;
+        }
+
+        // Initial launch configuration load
+        updateCartTotals();
+    </script>
+</body>
+</html>
