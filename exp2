@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
+        .calculator { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 4px; white-space: pre-line; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <h2>Billing Calculator</h2>
+        <div class="form-group">
+            <label for="subtotal">Subtotal ($):</label>
+            <input type="number" id="subtotal" placeholder="Enter amount" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="taxRate">Tax Rate (%):</label>
+            <input type="number" id="taxRate" value="15" min="0" step="0.1">
+        </div>
+        <div class="form-group">
+            <label for="discount">Discount ($):</label>
+            <input type="number" id="discount" value="0" min="0" step="0.01">
+        </div>
+        <button onclick="calculateBill()">Calculate Total</button>
+        <div id="output" class="result">Results will appear here...</div>
+    </div>
+
+    <script>
+        // CONST: Variables that cannot be reassigned. Ideal for fixed configurations.
+        const DEFAULT_CURRENCY = "$";
+
+        function calculateBill() {
+            // VAR: Function-scoped variable. Available throughout this entire function.
+            var errorMessage = "";
+
+            // LET: Block-scoped variables. Used for values that will change during calculation.
+            let subtotal = parseFloat(document.getElementById('subtotal').value);
+            let taxRate = parseFloat(document.getElementById('taxRate').value);
+            let discount = parseFloat(document.getElementById('discount').value);
+
+            // Validation logic updating our 'let' and 'var' variables
+            if (isNaN(subtotal) || subtotal < 0) {
+                errorMessage = "Please enter a valid subtotal amount.";
+                subtotal = 0;
+            }
+
+            if (errorMessage) {
+                document.getElementById('output').innerText = errorMessage;
+                return;
+            }
+
+            // Calculation process updating block-scoped 'let' variables
+            let taxAmount = subtotal * (taxRate / 100);
+            let totalBeforeDiscount = subtotal + taxAmount;
+            let finalTotal = totalBeforeDiscount - discount;
+
+            if (finalTotal < 0) finalTotal = 0;
+
+            // DESTRUCTURING: Extracting values from an object cleanly into separate variables
+            const billSummary = {
+                basePrice: subtotal,
+                tax: taxAmount,
+                reduction: discount,
+                grandTotal: finalTotal
+            };
+            
+            const { basePrice, tax, reduction, grandTotal } = billSummary;
+
+            // TEMPLATE LITERALS: Multi-line strings using backticks (`) with embedded expressions (${})
+            const receiptTemplate = `
+                ===== RECEIPT SUMMARY =====
+                Subtotal:     ${DEFAULT_CURRENCY}${basePrice.toFixed(2)}
+                Tax Added:    ${DEFAULT_CURRENCY}${tax.toFixed(2)} (${taxRate}%)
+                Discount:    -${DEFAULT_CURRENCY}${reduction.toFixed(2)}
+                ---------------------------
+                Total Due:    ${DEFAULT_CURRENCY}${grandTotal.toFixed(2)}
+            `;
+
+            // Display the final output template in the DOM
+            document.getElementById('output').innerText = receiptTemplate;
+        }
+    </script>
+</body>
+</html>
