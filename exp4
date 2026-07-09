@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Palindrome Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; color: #212529; }
+        .wrapper { max-width: 450px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .field { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 6px; box-sizing: border-box; font-size: 16px; transition: border-color 0.2s; }
+        input:focus { border-color: #4dabf7; outline: none; }
+        button { background: #339af0; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        button:hover { background: #228be6; }
+        .output { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; font-size: 15px; line-height: 1.5; }
+        .success { background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb; }
+        .info { background-color: #e7f5ff; color: #1c7ed6; border: 1px solid #a5d8ff; }
+        .danger { background-color: #fff0f6; color: #c92a2a; border: 1px solid #ffdeeb; }
+        .history { margin-top: 25px; border-top: 1px solid #e9ecef; padding-top: 15px; }
+        .history h4 { margin: 0 0 10px 0; color: #495057; }
+        .history ul { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+        .history li { padding: 6px 10px; background: #f1f3f5; margin-bottom: 5px; border-radius: 4px; font-size: 14px; font-family: monospace; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h2>Palindrome Checker</h2>
+        <div class="field">
+            <label for="phraseInput">Enter Text:</label>
+            <input type="text" id="phraseInput" placeholder="e.g., Racecar or A man, a plan, a canal: Panama">
+        </div>
+        <button onclick="handleCheck()">Verify Text</button>
+
+        <div id="resultBox" class="output"></div>
+
+        <div class="history">
+            <h4>Search History (Session Counter)</h4>
+            <ul id="historyList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL SCOPE: Accessible anywhere within this script
+        const historyList = document.getElementById('historyList');
+        const resultBox = document.getElementById('resultBox');
+
+        // CLOSURE: Maintains a private count and history array inside its lexical scope
+        function createTracker() {
+            let totalChecks = 0; // Private variable encapsulated by closure
+            
+            return function(text, isPalindrome) {
+                totalChecks++; // Accesses and updates the parent function's variable
+                const li = document.createElement('li');
+                li.innerHTML = `<span>"${text}"</span> <span>#${totalChecks} (${isPalindrome ? '✓' : '✗'})</span>`;
+                historyList.appendChild(li);
+            };
+        }
+
+        // Initialize the closure function
+        const recordSessionActivity = createTracker();
+
+        // ARROW FUNCTION (Function Type): Clean syntax, implicitly binds lexical 'this'
+        const cleanText = (str) => {
+            // Remove non-alphanumeric characters and convert to lowercase
+            return str.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        };
+
+        // FUNCTION EXPRESSION (Function Type): Stored in a variable, not hoisted
+        const verifyPalindrome = function(inputStr) {
+            // Local Scope: 'processedText' and 'reversedText' exist only inside this function
+            const processedText = cleanText(inputStr);
+            
+            // Error handling condition for empty raw strings or strip-cleared inputs
+            if (!processedText) {
+                throw new Error("Input contains no valid alphanumeric characters.");
+            }
+
+            const reversedText = processedText.split("").reverse().join("");
+            return processedText === reversedText;
+        };
+
+        // TRADITIONAL FUNCTION DECLARATION (Function Type): Fully hoisted function
+        function handleCheck() {
+            const rawInput = document.getElementById('phraseInput').value;
+
+            // Reset UI State
+            resultBox.style.display = "none";
+            resultBox.className = "output";
+
+            // TRY-CATCH-FINALLY Block: Gracefully handles runtime exceptions and formatting
+            try {
+                // Throws an immediate error if input is completely empty
+                if (rawInput.trim() === "") {
+                    throw new Error("Please enter some text before checking.");
+                }
+
+                const isPalindrome = verifyPalindrome(rawInput);
+                
+                // Update tracker closure with results
+                recordSessionActivity(rawInput.trim(), isPalindrome);
+
+                if (isPalindrome) {
+                    resultBox.innerText = `"${rawInput}" is a palindrome!`;
+                    resultBox.classList.add("success");
+                } else {
+                    resultBox.innerText = `"${rawInput}" is not a palindrome.`;
+                    resultBox.classList.add("info");
+                }
+
+            } catch (error) {
+                // Handles all error objects thrown in the try block
+                resultBox.innerText = `Error: ${error.message}`;
+                resultBox.classList.add("danger");
+
+            } finally {
+                // Executes regardless of whether an exception occurred or not
+                resultBox.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
