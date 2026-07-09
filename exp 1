@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Demonstration</title>
+
+    <!-- EXTERNAL JAVASCRIPT -->
+    <!-- Links an external script file to keep code organized and reusable -->
+    <script src="app.js" defer></script>
+
+    <!-- INTERNAL JAVASCRIPT -->
+    <!-- Holds script logic directly inside the HTML document head or body -->
+    <script>
+        function logEnvironment() {
+            try {
+                // console.log(): Standard informational logging
+                console.log("Initializing environment scan...");
+
+                const envInfo = {
+                    browser: navigator.userAgent,
+                    language: navigator.language,
+                    screenResolution: `${window.screen.width}x${window.screen.height}`,
+                    onlineStatus: navigator.onLine ? "Online" : "Offline"
+                };
+
+                // console.table(): Displays object data clearly as a formatted table
+                console.table(envInfo);
+
+                // Intentionally trigger a trace test to show execution path
+                triggerTrace();
+
+            } catch (error) {
+                // console.error(): Outputs red error messages with stack traces
+                console.error("Failed to safely log environment info:", error);
+            }
+        }
+
+        function triggerTrace() {
+            // console.trace(): Displays the exact call stack leading to this point
+            console.trace("Trace call: Environment info rendering path");
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Welcome to the JavaScript Demo</h1>
+    <p>Open your browser console (F12) to see the different log outputs.</p>
+
+    <!-- INLINE JAVASCRIPT -->
+    <!-- Executes directly inside HTML event attributes like onclick -->
+    <button onclick="alert('Welcome! Thank you for visiting.'); logEnvironment();">
+        Click for Welcome Message
+    </button>
+
+</body>
+</html>
